@@ -58,9 +58,9 @@ conventions in `E:\CLAUDE\COMPANY\GOALS.md`.
       disease notes, and more. All critical/high findings fixed same run
       and re-verified. ✔ 2026-09-10 — see `docs/domain-reference.md` and
       `HANDOVER.md` D6.
-- [ ] M2 — Ship: git init, security review, push via `init-repo.ps1`,
+- [x] M2 — Ship: git init, security review, push via `init-repo.ps1`,
       deploy via `deploy-service.ps1`, verify live, update hub page and
-      sitemap index.
+      sitemap index. ✔ 2026-09-10 — https://aquarium-stocking-calculator.svc.julienika.cz.
 - [ ] M3 — Monetization once an ad account exists for this domain (already
       wired via the shared `ADSENSE_PUBLISHER_ID` env var, awaiting
       AdSense's own per-domain approval, same as every other svc-lab
@@ -113,3 +113,23 @@ conventions in `E:\CLAUDE\COMPANY\GOALS.md`.
   sitemap index and redeploy, then close out svc-lab's GOALS.md per the
   usual resume pattern (see epub-metadata-fixer's and soap-lye-calculator's
   own resume entries).
+- 2026-09-10 — M2 complete this run (svc-lab automation resume). Full
+  suite independently re-verified fresh before touching git (ESLint, 26
+  Vitest tests, production build, 11 Playwright e2e tests, all clean).
+  Manual security review clean (no network calls, no client-side storage,
+  no secrets, safe JSON-LD escaping, no server endpoints) — the
+  `/security-review` skill's `origin/HEAD` precondition still can't run
+  before a remote exists, same known gap as every prior service. `git
+  init`, repo-local `user.email`, committed, pushed via `init-repo.ps1`
+  (https://github.com/yunniko/aquarium-stocking-calculator, public),
+  deployed via `deploy-service.ps1` on the first attempt (port 30180,
+  bound to 127.0.0.1). Live at
+  https://aquarium-stocking-calculator.svc.julienika.cz — every route
+  (home, `/stocking-calculator`, `/tank-volume-calculator`,
+  `/fish-species-reference`, `/ads.txt`, `/sitemap.xml`, `/robots.txt`)
+  independently confirmed 200 via curl, three other live host sites
+  confirmed unaffected. SEO review via curl (sitemap/robots correct,
+  per-page titles/descriptions distinct, FAQPage JSON-LD present).
+  julienika-home hub page and sitemap index updated, pushed, redeployed,
+  and independently verified live. Full detail in `svc-lab/GOALS.md`'s
+  own progress log for this date.

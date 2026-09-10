@@ -6,13 +6,15 @@ Company-wide standards in `E:\CLAUDE\COMPANY\`. Parent initiative:
 
 ## Current state
 
-Built, locally verified (ESLint, production build, unit tests, e2e tests —
-see the latest `GOALS.md` progress-log entry for the exact counts from the
-most recent run). Domain-expert review and shipping are still open — see
-`GOALS.md`'s milestones. Three tools: `/stocking-calculator` (tank size +
-fish list → a species-aware stocking estimate), `/tank-volume-calculator`
-(dimensions → gross/usable volume), `/fish-species-reference` (sourced
-15-entry species table). No database, no accounts.
+Shipped and live at https://aquarium-stocking-calculator.svc.julienika.cz
+(deployed 2026-09-10, port 30180). Built, domain-expert reviewed and
+fixed, security-reviewed (manual equivalent, clean), and locally verified
+fresh before shipping (ESLint, production build, 26 unit tests, 11 e2e
+tests — see `GOALS.md`'s progress log for exact counts). Three tools:
+`/stocking-calculator` (tank size + fish list → a species-aware stocking
+estimate), `/tank-volume-calculator` (dimensions → gross/usable volume),
+`/fish-species-reference` (sourced 15-entry species table). No database,
+no accounts. Linked from the `julienika-home` hub page and sitemap index.
 
 ## How things fit together
 
@@ -96,11 +98,17 @@ species' own note, rather than presenting a disputed number as settled.
 Flagged for the mandatory domain-expert review (M1b in `GOALS.md`) before
 shipping, per `docs/domain-reference.md` once that review has run.
 
+**D6 — Manual security review substituted for `/security-review`, same
+gap as every prior svc-lab service.** The skill's `origin/HEAD`
+precondition can't run before a GitHub remote exists — checked manually
+instead (no network calls anywhere in the app, no client-side storage, no
+hardcoded secrets, JSON-LD rendered via the shared escape-safe helper, no
+server-side endpoints since this is a fully static/client-side tool):
+clean, no findings.
+
 ## Next steps and open questions
 
-- M1b (domain-expert review) and M2 (ship) are still open as of this
-  entry — see `GOALS.md`'s milestones for what's left.
-- If a future session gets real WebFetch/forum access, both the species
+- Shipped. If a future session gets real WebFetch/forum access, both the species
   reference table and the stocking heuristic's own framing would benefit
   from being checked against a primary source with real bioload/ammonia
   measurements (e.g. a university aquaculture extension publication)
