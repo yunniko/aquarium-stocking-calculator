@@ -1,115 +1,46 @@
 # Handover — aquarium-stocking-calculator
+Last verified: 2026-09-12 at a8f9dd4
 
-Read this before touching the project. Goal in `GOALS.md` (G-001).
-Company-wide standards in `E:\CLAUDE\COMPANY\`. Parent initiative:
-`E:\CLAUDE\projects\svc-lab\`.
+svc-lab service #13. Goal: `GOALS.md` G-001. Shared conventions: `E:\CLAUDE\projects\svc-lab\`;
+charter: `E:\CLAUDE\COMPANY\`.
 
 ## Current state
 
-Shipped and live at https://aquarium-stocking-calculator.svc.julienika.cz
-(deployed 2026-09-10, port 30180). Built, domain-expert reviewed and
-fixed, security-reviewed (manual equivalent, clean), and locally verified
-fresh before shipping (ESLint, production build, 26 unit tests, 11 e2e
-tests — see `GOALS.md`'s progress log for exact counts). Three tools:
-`/stocking-calculator` (tank size + fish list → a species-aware stocking
-estimate), `/tank-volume-calculator` (dimensions → gross/usable volume),
-`/fish-species-reference` (sourced 15-entry species table). No database,
-no accounts. Linked from the `julienika-home` hub page and sitemap index.
+- **Live** at https://aquarium-stocking-calculator.svc.julienika.cz (deployed 2026-09-10,
+  port 30180; HTTP 200 re-checked 2026-09-12). Linked from the `julienika-home` hub and sitemap
+  index.
+- Three tools, no database, no accounts: `/stocking-calculator` (tank size + fish list →
+  species-aware stocking estimate with independent tank-size and group-size floors),
+  `/tank-volume-calculator`, `/fish-species-reference` (15 sourced species).
+- Verification on 2026-09-12: `npm run test:unit` 26/26. e2e (11 specs) last green 2026-09-10.
+- Domain-expert and manual security reviews done (D006). Git tree clean.
 
 ## How things fit together
 
-Standard svc-lab stateless Next.js service — see `svc-lab/HANDOVER.md` for
-the shared template/deploy pattern. Business logic lives in
-`lib/fish-species-reference.ts` (the sourced per-species data table),
-`lib/stocking-calculator.ts` (bioload summation + two independent floor
-checks), and `lib/tank-volume-calculator.ts` (exact geometry + unit
-conversion + a disclosed usable-volume estimate) — all pure
-functions/data, unit-tested in `tests/unit/`. UI forms are in
-`app/_components/`, pages in `app/stocking-calculator`,
-`app/tank-volume-calculator`, `app/fish-species-reference`.
+Standard svc-lab stateless Next.js service. Pure logic: `lib/fish-species-reference.ts`
+(sourced data), `lib/stocking-calculator.ts` (bioload sum + two floor checks),
+`lib/tank-volume-calculator.ts` (exact geometry + one disclosed estimate). Forms in
+`app/_components/`, pages under `app/<tool>/`.
 
-## Decision record
+## Rules in force
 
-**D1 — The stocking heuristic is a species-adjusted extension of the
-classic "inch of fish per gallon" rule, not a from-scratch model.** This
-project's own research (svc-lab `GOALS.md` backlog idea #16) found the
-dominant existing tool, AqAdvisor, repeatedly criticized across independent
-sources for a model that doesn't account for disproportionate waste from
-larger/messier species (e.g. an oscar vs. an equivalent length of small
-schooling fish). Rather than invent a more "precise"-looking formula with
-no real backing, this project keeps the well-known, widely-taught baseline
-(1 inch-equivalent per gallon = 100%) and adds one adjustable factor per
-species (`bioloadFactor`) informed by qualitative research on relative
-waste production — an honest, incremental improvement on a known
-heuristic, not a claim to have solved bioload modeling. See
-`lib/stocking-calculator.ts`'s header comment and the calculator page's own
-FAQ for the full framing, including everything this model does NOT
-account for (filtration maturity, real water test results, plant load,
-per-pair aggression/territory beyond a flat temperament label).
-
-**D2 — Minimum tank size and minimum group size are independent floor
-checks, not folded into the bioload percentage.** A single oscar produces
-a low RAW bioload percentage in a 20-gallon tank by the formula alone (one
-fish, moderate adjusted size), but a 20-gallon tank is still far too small
-for an oscar's territorial/spatial needs — exactly the kind of gap the
-research found in AqAdvisor's pure-bioload model. Rather than try to
-encode territory/spatial needs into the bioload number itself (which would
-require real per-species enclosure-size research well beyond this
-project's scope), this project keeps them as separate, always-checked
-warnings that fire regardless of the computed percentage. Same reasoning
-for minimum group size (a welfare issue for schooling fish, unrelated to
-bioload capacity).
-
-**D3 — `bioloadFactor` is explicitly framed as a directional relative
-scale, not a lab-measured coefficient — disclosed in three places (the
-lib file's header comment, the species reference page's FAQ, and each
-entry's own note where relevant).** No authoritative numeric bioload
-database was found for common aquarium species during this project's
-research; the factors synthesize qualitative descriptions (e.g. "produces
-waste equivalent to about four medium community fish," "ammonia
-excretion roughly 3x a tropical fish per body weight," "much lower
-bioload than common plecos"). This is the same honesty standard
-`ad-revenue-calculator` applied to its own CPM benchmark ranges
-(distinguishing "directional" from "sourced") — flagged explicitly for the
-mandatory domain-expert review rather than presented as more precise than
-it is.
-
-**D4 — `lib/tank-volume-calculator.ts` is deliberately split into exact
-math (geometry, unit conversion) and one disclosed estimate (90% usable
-volume).** Unlike the bioload model, gallon/liter/cubic-inch conversions
-and rectangular/cylinder volume formulas are exact by definition — no
-sourcing risk there. The only rule-of-thumb figure in this file is the 90%
-usable-volume fraction (substrate/decor/fill-line display), which is
-called out explicitly as an estimate on the calculator page rather than
-folded silently into the "real" numbers.
-
-**D5 — Sourcing: WebFetch denied this session (confirmed via one direct
-attempt against a seriouslyfish.com species page, per the daily-loop
-playbook), so every species figure comes from WebSearch-snippet synthesis,
-not a directly-read primary document.** Same known limitation documented
-in `svc-lab/HANDOVER.md`'s research-caveat decision. Cross-corroborated
-per species across multiple independent, established fishkeeping sources
-(see `lib/fish-species-reference.ts`'s header comment for the full
-citation list) rather than trusted from one source. Where sources
-genuinely disagreed on a figure (several species — goldfish and oscar
-minimum tank size are the clearest examples), the table picked the more
-conservative commonly-cited figure and says so explicitly in that
-species' own note, rather than presenting a disputed number as settled.
-Flagged for the mandatory domain-expert review (M1b in `GOALS.md`) before
-shipping, per `docs/domain-reference.md` once that review has run.
-
-**D6 — Manual security review substituted for `/security-review`, same
-gap as every prior svc-lab service.** The skill's `origin/HEAD`
-precondition can't run before a GitHub remote exists — checked manually
-instead (no network calls anywhere in the app, no client-side storage, no
-hardcoded secrets, JSON-LD rendered via the shared escape-safe helper, no
-server-side endpoints since this is a fully static/client-side tool):
-clean, no findings.
+- Bioload scales with length^2.25–2.67, not linearly (D006). Floors stay separate from the
+  percentage (D002).
+- `bioloadFactor` values are directional; change one only with a cited source (D003).
+- `npm ci --legacy-peer-deps`; run unit, e2e and `npm run build` before calling work done.
 
 ## Next steps and open questions
 
-- Shipped. If a future session gets real WebFetch/forum access, both the species
-  reference table and the stocking heuristic's own framing would benefit
-  from being checked against a primary source with real bioload/ammonia
-  measurements (e.g. a university aquaculture extension publication)
-  rather than WebSearch snippet synthesis of hobbyist care guides.
+- With working WebFetch, check the species table and the heuristic's framing against a primary
+  source with real bioload/ammonia measurements (a university aquaculture extension).
+- AdSense per-domain approval unconfirmed (portfolio-wide).
+
+## Deploy log
+
+| Date | Commit | What changed | Verified how |
+|---|---|---|---|
+| 2026-09-10 | a8f9dd4 | First deploy (port 30180); hub + sitemap index updated | Routes curl 200, sibling sites unaffected |
+
+## Decisions
+
+`docs/decisions/README.md` (D001–D006).
